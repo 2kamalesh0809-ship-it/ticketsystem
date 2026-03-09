@@ -1,12 +1,13 @@
 import api from './api';
 
 const mapCustomer = (customer) => ({
-    id: customer._id,
+    id: customer._id || customer.id,
     name: customer.name,
     phone: customer.phone,
     email: customer.email,
-    totalTickets: customer.tickets?.length || 0,
-    lastContact: customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : '',
+    totalTickets: customer.totalTickets !== undefined ? customer.totalTickets : (customer.tickets?.length || 0),
+    lastContact: customer.lastContact ? new Date(customer.lastContact).toISOString().split('T')[0] :
+        (customer.createdAt ? new Date(customer.createdAt).toISOString().split('T')[0] : ''),
     tickets: customer.tickets || []
 });
 

@@ -10,7 +10,20 @@ const { protect } = require('../middleware/auth');
 router.get('/', protect, async (req, res) => {
     try {
         const customers = await Customer.find().sort({ createdAt: -1 });
-        res.json(customers);
+
+        // Get ticket counts for each customer
+        const customersWithStats = await Promise.all(customers.map(async (customer) => {
+            const ticketCount = await Ticket.countDocuments({ customerId: customer._id });
+            const lastTicket = await Ticket.findOne({ customerId: customer._id }).sort({ createdAt: -1 });
+
+            return {
+                ...customer._doc,
+                totalTickets: ticketCount,
+                lastContact: lastTicket ? lastTicket.createdAt : customer.createdAt
+            };
+        }));
+
+        res.json(customersWithStats);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
