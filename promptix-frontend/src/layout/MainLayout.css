@@ -1,0 +1,72 @@
+:root {
+    --bg-main: #f8fafc;
+    --sidebar-width: 260px;
+    --sidebar-width-collapsed: 80px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base App Layout */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    color: #1e293b;
+}
+
+/* Main Content Wrapper (Right Side) */
+.main-wrapper {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    transition: margin-left var(--transition);
+}
+
+.app-layout.collapsed .main-wrapper {
+    margin-left: var(--sidebar-width-collapsed);
+}
+
+/* Scrollable Content Area */
+.main-content {
+    flex: 1;
+    padding: 32px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.content-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header & Sidebar Mobile Interactions */
+@media (max-width: 768px) {
+    .main-wrapper {
+        margin-left: 0;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+}
+
+/* Sidebar Overlay for Mobile */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 90;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}

@@ -1,0 +1,100 @@
+.call-logs-page {
+    display: flex;
+    flex-direction: column;
+}
+
+.type-badge {
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+.inbound-badge {
+    background-color: #dbeafe;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.outbound-badge {
+    background-color: #ffedd5;
+    color: #ea580c;
+    border: 1px solid #fed7aa;
+}
+
+.ticket-link {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.ticket-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.denied-container {
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.p-12 {
+    padding: 48px;
+}
+
+.gap-2 {
+    gap: 8px;
+}
+
+.mini-player {
+    height: 32px;
+    width: 200px;
+    border-radius: 999px;
+    outline: none;
+}
+
+/* Modal form grid helpers if not already in global css */
+.grid {
+    display: grid;
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.col-span-1 {
+    grid-column: span 1 / span 1;
+}
+
+.col-span-2 {
+    grid-column: span 2 / span 2;
+}
+
+.hidden {
+    display: none;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.bg-green-50 {
+    background-color: #f0fdf4;
+}
+
+.text-green-600 {
+    color: #16a34a;
+}
+
+.border-green-100 {
+    border-color: #dcfce7;
+}

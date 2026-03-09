@@ -1,0 +1,79 @@
+/* Core Form Elements CSS Layer */
+/* Enforces strict design rules natively replacing decentralized form css blocks */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+}
+
+.text-danger {
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+/* Enhancing global .input-field specifically inside forms context */
+.form-group .input-field {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    /* Strict 8px requirement */
+    font-size: 14px;
+    color: var(--text-main);
+    background-color: var(--card-bg);
+    /* Enforcing White Background */
+    transition: all 0.2s ease;
+}
+
+.form-group .input-field:focus {
+    border-color: var(--primary);
+    /* Focus color #2563eb enforced natively */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    outline: none;
+}
+
+.form-group .input-field:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-color: var(--border-color);
+}
+
+.note-textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+/* Button Normalization */
+.form-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+}
+
+.form-btn:disabled {
+    background-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}

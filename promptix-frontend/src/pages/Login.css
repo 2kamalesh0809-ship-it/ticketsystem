@@ -1,0 +1,65 @@
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-color);
+    padding: 24px;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 24px !important;
+}
+
+.login-header {
+    margin-bottom: 32px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Reusable form layers inherited natively from /forms.css */
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    margin-top: 8px;
+}
+
+.login-logo-img {
+    display: block;
+    margin: 0 auto;
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+.mt-4 {
+    margin-top: 16px;
+}
+
+.w-100 {
+    width: 100%;
+}

@@ -1,0 +1,61 @@
+.status-badge {
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.status-badge-open {
+    background-color: var(--status-open-bg);
+    color: var(--status-open-text);
+}
+
+.status-badge-open::before {
+    background-color: var(--status-open-text);
+}
+
+.status-badge-in-progress {
+    background-color: var(--status-progress-bg);
+    color: var(--status-progress-text);
+}
+
+.status-badge-in-progress::before {
+    background-color: var(--status-progress-text);
+}
+
+.status-badge-resolved {
+    background-color: var(--status-resolved-bg);
+    color: var(--status-resolved-text);
+}
+
+.status-badge-resolved::before {
+    background-color: var(--status-resolved-text);
+}
+
+.status-badge-closed {
+    background-color: var(--status-closed-bg);
+    color: var(--status-closed-text);
+}
+
+.status-badge-closed::before {
+    background-color: var(--status-closed-text);
+}
+
+.status-badge-default {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.status-badge-default::before {
+    background-color: #475569;
+}

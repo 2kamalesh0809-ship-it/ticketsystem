@@ -1,0 +1,54 @@
+.page-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 24px 0;
+    width: 100%;
+    background: transparent;
+}
+
+.page-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.page-header-title-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.page-header-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-header-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.page-header-right {
+    display: flex;
+    align-items: center;
+}
+
+/* Inherits .btn-primary from index.css to enforce the primary #2563eb standard blue */
+/* Ensures consistent custom flex behavior on smaller devices */
+
+@media (max-width: 640px) {
+    .page-header-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .page-header-right,
+    .page-header-right .btn-primary {
+        width: 100%;
+    }
+}

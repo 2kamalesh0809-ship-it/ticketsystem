@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Coach | Support</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .support-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .logo h1 {
+            color: #2563eb;
+            margin: 0;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: none;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        button:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+        }
+        #message-box {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            display: none;
+        }
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+    </style>
+</head>
+<body>
+
+<div class="support-card">
+    <div class="logo">
+        <h1>Mr. Coach</h1>
+        <p>Support Request Form</p>
+    </div>
+
+    <form id="support-form">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="name" required placeholder="John Doe">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" required placeholder="john@example.com">
+        </div>
+        <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="phone" placeholder="9876543210">
+        </div>
+        <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="subject" placeholder="Problem with booking">
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea id="message" required placeholder="How can we help you?"></textarea>
+        </div>
+        <button type="submit" id="submit-btn">Submit Support Request</button>
+    </form>
+
+    <div id="message-box"></div>
+</div>
+
+<script>
+    const form = document.getElementById('support-form');
+    const msgBox = document.getElementById('message-box');
+    const submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Reset state
+        msgBox.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Submitting...';
+
+        const data = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            subject: document.getElementById('subject').value,
+            message: document.getElementById('message').value,
+            source: 'Website'
+        };
+
+        try {
+            const response = await fetch('http://localhost:5000/api/external/create-ticket', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-support-api-key': 'MRCOACH_SUPPORT_KEY'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                msgBox.className = 'success';
+                msgBox.innerText = `Your support request has been submitted successfully. Ticket ID: ${result.ticketId}`;
+                form.reset();
+            } else {
+                msgBox.className = 'error';
+                msgBox.innerText = result.error || 'Something went wrong.';
+            }
+        } catch (error) {
+            msgBox.className = 'error';
+            msgBox.innerText = 'Could not connect to the server. Make sure the backend is running.';
+        } finally {
+            msgBox.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Submit Support Request';
+        }
+    });
+</script>
+
+</body>
+</html>
