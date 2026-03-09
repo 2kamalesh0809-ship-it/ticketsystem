@@ -7,6 +7,7 @@ import PageHeader from '../components/PageHeader';
 import TextArea from '../components/forms/TextArea';
 import FormButton from '../components/forms/FormButton';
 import { useTickets } from '../context/TicketContext';
+import userService from '../services/userService';
 import {
     ArrowLeft,
     Send,
@@ -40,12 +41,27 @@ const TicketDetails = () => {
     const [priority, setPriority] = useState('');
     const [agent, setAgent] = useState('');
     const [noteText, setNoteText] = useState('');
+    const [staffMembers, setStaffMembers] = useState([]);
+    const [updating, setUpdating] = useState(false);
+    const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', null
+
+    useEffect(() => {
+        const fetchStaff = async () => {
+            try {
+                const users = await userService.getAllUsers();
+                setStaffMembers(users);
+            } catch (err) {
+                console.error('Failed to fetch staff members:', err);
+            }
+        };
+        fetchStaff();
+    }, []);
 
     useEffect(() => {
         if (ticket) {
             setStatus(ticket.status || 'Open');
             setPriority(ticket.priority || 'Medium');
-            setAgent(ticket.assignedAgent || 'Unassigned');
+            setAgent(ticket.assignedAgentId || 'Unassigned');
         }
     }, [ticket]);
 
@@ -64,12 +80,23 @@ const TicketDetails = () => {
         );
     }
 
-    const handleSaveChanges = () => {
-        updateTicket(ticket.id, {
-            status,
-            priority,
-            assignedAgent: agent
-        });
+    const handleSaveChanges = async () => {
+        setUpdating(true);
+        setSaveStatus(null);
+        try {
+            await updateTicket(ticket.id, {
+                status,
+                priority,
+                assignedMember: agent === 'Unassigned' ? null : agent
+            });
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus(null), 3000);
+        } catch (error) {
+            console.error('Failed to save changes:', error);
+            setSaveStatus('error');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleAddNote = () => {
@@ -186,15 +213,24 @@ const TicketDetails = () => {
                                 <label>Assigned Staff</label>
                                 <select className="premium-select" value={agent} onChange={(e) => setAgent(e.target.value)}>
                                     <option value="Unassigned">Waiting for Assignment</option>
-                                    <option value="Support Member 1">Alex Johnson (Support Member 1)</option>
-                                    <option value="Support Member 2">Sarah Williams (Support Member 2)</option>
-                                    <option value="Support Member 3">Michael Chen (Support Member 3)</option>
+                                    {staffMembers.map(member => (
+                                        <option key={member._id} value={member._id}>
+                                            {member.name} ({member.role})
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
                         <div className="save-footer">
-                            <button className="btn-primary-glow" onClick={handleSaveChanges}>
-                                Save Updated Parameters
+                            <button
+                                className={`btn-primary-glow ${saveStatus === 'success' ? 'btn-success' : ''} ${saveStatus === 'error' ? 'btn-error' : ''}`}
+                                onClick={handleSaveChanges}
+                                disabled={updating}
+                            >
+                                {updating ? 'Saving...' :
+                                    saveStatus === 'success' ? 'Changes Saved!' :
+                                        saveStatus === 'error' ? 'Failed to Save' :
+                                            'Save Updated Parameters'}
                             </button>
                         </div>
                     </div>

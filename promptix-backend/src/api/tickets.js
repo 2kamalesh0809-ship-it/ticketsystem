@@ -123,7 +123,13 @@ router.put('/:id', protect, async (req, res) => {
 
         ticket.status = req.body.status || ticket.status;
         ticket.priority = req.body.priority || ticket.priority;
-        ticket.assignedMember = req.body.assignedMember || ticket.assignedMember;
+
+        if (req.body.assignedMember !== undefined) {
+            ticket.assignedMember = (req.body.assignedMember === 'Unassigned' || !req.body.assignedMember)
+                ? null
+                : req.body.assignedMember;
+        }
+
         ticket.category = req.body.category || ticket.category;
         ticket.description = req.body.description || ticket.description;
         ticket.subject = req.body.subject || ticket.subject;

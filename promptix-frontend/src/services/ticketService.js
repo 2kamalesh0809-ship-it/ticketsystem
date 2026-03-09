@@ -8,6 +8,7 @@ const mapTicket = (ticket) => ({
     priority: ticket.priority,
     status: ticket.status,
     assignedAgent: ticket.assignedMember?.name || 'Unassigned',
+    assignedAgentId: ticket.assignedMember?._id || (typeof ticket.assignedMember === 'string' ? ticket.assignedMember : null),
     source: ticket.source || 'Manual',
 
     createdDate: ticket.createdAt ? new Date(ticket.createdAt).toISOString().split('T')[0] : '',
