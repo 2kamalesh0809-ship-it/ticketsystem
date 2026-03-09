@@ -3,6 +3,7 @@ const router = express.Router();
 const Ticket = require('../models/Ticket');
 const Customer = require('../models/Customer');
 const { generateTicketId } = require('../utils/generateTicketId');
+const { createNotification } = require('../utils/notifications');
 
 // Middleware to validate API Key
 const validateApiKey = (req, res, next) => {
@@ -58,7 +59,16 @@ router.post('/create-ticket', validateApiKey, async (req, res) => {
 
         await ticket.save();
 
-        // STEP 5 - Success Response
+        // STEP 5 - Notification
+        await createNotification({
+            userId: 'staff',
+            title: 'New Website Ticket',
+            message: `A new inquiry from ${name} was submitted via mrcoach.in (Ticket: ${ticket.ticketId})`,
+            type: 'New Ticket',
+            relatedId: ticket.ticketId
+        });
+
+        // STEP 6 - Success Response
         res.status(201).json({
             success: true,
             ticketId: ticket.ticketId,

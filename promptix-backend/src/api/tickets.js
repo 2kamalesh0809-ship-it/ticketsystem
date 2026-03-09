@@ -5,6 +5,7 @@ const Customer = require('../models/Customer');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 const { generateTicketId } = require('../utils/generateTicketId');
+const { createNotification } = require('../utils/notifications');
 
 
 // @desc    Get all tickets
@@ -124,6 +125,8 @@ router.put('/:id', protect, async (req, res) => {
         ticket.status = req.body.status || ticket.status;
         ticket.priority = req.body.priority || ticket.priority;
 
+        const oldAssigned = ticket.assignedMember ? ticket.assignedMember.toString() : null;
+
         if (req.body.assignedMember !== undefined) {
             ticket.assignedMember = (req.body.assignedMember === 'Unassigned' || !req.body.assignedMember)
                 ? null
@@ -135,6 +138,17 @@ router.put('/:id', protect, async (req, res) => {
         ticket.subject = req.body.subject || ticket.subject;
 
         const updatedTicket = await ticket.save();
+
+        // Assignment Notification
+        if (ticket.assignedMember && ticket.assignedMember.toString() !== oldAssigned) {
+            await createNotification({
+                userId: ticket.assignedMember,
+                title: 'New Ticket Assigned',
+                message: `Ticket #${ticket.ticketId} has been assigned to you by ${req.user.name}`,
+                type: 'Assignment',
+                relatedId: ticket.ticketId
+            });
+        }
 
         const populated = await Ticket.findById(updatedTicket._id)
             .populate('customerId', 'name email phone')
@@ -178,6 +192,39 @@ router.post('/:id/notes', protect, async (req, res) => {
 
         ticket.notes.unshift(note);
         await ticket.save();
+
+        // Notify relevant party
+        if (ticket.assignedMember) {
+            // If assigned user did NOT write the note, notify them
+            if (ticket.assignedMember.toString() !== req.user._id.toString()) {
+                await createNotification({
+                    userId: ticket.assignedMember,
+                    title: 'New Internal Note',
+                    message: `${req.user.name} added a note to Ticket #${ticket.ticketId}`,
+                    type: 'Update',
+                    relatedId: ticket.ticketId
+                });
+            } else {
+                // If assigned user wrote it, notify managers
+                await createNotification({
+                    userId: 'staff',
+                    title: 'Note from Staff',
+                    message: `${req.user.name} responded on Ticket #${ticket.ticketId}`,
+                    type: 'Update',
+                    relatedId: ticket.ticketId
+                });
+            }
+        } else {
+            // Unassigned ticket note
+            await createNotification({
+                userId: 'staff',
+                title: 'New Note (Unassigned)',
+                message: `${req.user.name} added a note to Ticket #${ticket.ticketId}`,
+                type: 'Update',
+                relatedId: ticket.ticketId
+            });
+        }
+
         res.json(note);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });

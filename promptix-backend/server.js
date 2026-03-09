@@ -35,6 +35,7 @@ app.use('/api/customers', require('./src/api/customers'));
 app.use('/api/users', require('./src/api/users'));
 app.use('/api/calllogs', require('./src/api/calllogs'));
 app.use('/api/reports', require('./src/api/reports'));
+app.use('/api/notifications', require('./src/api/notifications'));
 
 // Test Route
 app.get('/', (req, res) => {
