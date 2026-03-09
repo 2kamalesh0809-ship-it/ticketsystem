@@ -29,8 +29,12 @@ const CreateTicket = () => {
     const [success, setSuccess] = useState(false);
     const [errors, setErrors] = useState({});
 
+    const [isNewCustomer, setIsNewCustomer] = useState(false);
     const [formData, setFormData] = useState({
         customerId: '',
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
         subject: '',
         priority: 'Medium',
         category: 'General',
@@ -67,7 +71,13 @@ const CreateTicket = () => {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!formData.customerId) newErrors.customerId = 'Customer is required';
+        if (!isNewCustomer && !formData.customerId) {
+            newErrors.customerId = 'Customer is required';
+        }
+        if (isNewCustomer) {
+            if (!formData.customerName.trim()) newErrors.customerName = 'Name is required';
+            if (!formData.customerEmail.trim()) newErrors.customerEmail = 'Email is required';
+        }
         if (!formData.subject.trim()) newErrors.subject = 'Subject is required';
         if (!formData.description.trim()) newErrors.description = 'Description is required';
 
@@ -85,16 +95,25 @@ const CreateTicket = () => {
         setLoading(true);
 
         try {
-            const newTicketId = await addTicket({
-                customerId: formData.customerId,
+            const ticketPayload = {
                 subject: formData.subject,
                 priority: formData.priority,
                 category: formData.category,
                 description: formData.description,
                 assignedMember: formData.assignedMember || null
-            });
+            };
 
-            setCreatedId(newTicketId);
+            if (isNewCustomer) {
+                ticketPayload.customerName = formData.customerName;
+                ticketPayload.customerEmail = formData.customerEmail;
+                ticketPayload.customerPhone = formData.customerPhone;
+            } else {
+                ticketPayload.customerId = formData.customerId;
+            }
+
+            const newId = await addTicket(ticketPayload);
+
+            setCreatedId(newId);
             setSuccess(true);
             setLoading(false);
 
@@ -126,7 +145,7 @@ const CreateTicket = () => {
                     </button>
                     <div className="header-text-group">
                         <h1 className="">Create New Ticket</h1>
-                        <p>Link a customer and describe the support issue.</p>
+                        <p>Link a customer or create a new one on-the-fly.</p>
                     </div>
                 </div>
 
@@ -136,26 +155,82 @@ const CreateTicket = () => {
                             <div className="form-section">
                                 <div className="section-header">
                                     <div className="section-icon"><User size={18} /></div>
-                                    <h2>Ticket Basics</h2>
+                                    <h2>Customer Information</h2>
+                                    <div className="customer-toggle-group">
+                                        <button
+                                            type="button"
+                                            className={`toggle-btn ${!isNewCustomer ? 'active' : ''}`}
+                                            onClick={() => setIsNewCustomer(false)}
+                                        >
+                                            Existing
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`toggle-btn ${isNewCustomer ? 'active' : ''}`}
+                                            onClick={() => setIsNewCustomer(true)}
+                                        >
+                                            New
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="form-grid">
-                                    <div className={`form-field ${errors.customerId ? 'has-error' : ''}`}>
-                                        <label>Select Customer <span className="required">*</span></label>
-                                        <select
-                                            name="customerId"
-                                            value={formData.customerId}
-                                            onChange={handleChange}
-                                            className="input-premium"
-                                        >
-                                            <option value="">Choose a customer...</option>
-                                            {customers.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                        {errors.customerId && <span className="error-msg">{errors.customerId}</span>}
-                                    </div>
+                                    {!isNewCustomer ? (
+                                        <div className={`form-field ${errors.customerId ? 'has-error' : ''}`}>
+                                            <label>Select Customer <span className="required">*</span></label>
+                                            <select
+                                                name="customerId"
+                                                value={formData.customerId}
+                                                onChange={handleChange}
+                                                className="input-premium"
+                                            >
+                                                <option value="">Choose a customer...</option>
+                                                {customers.map(c => (
+                                                    <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
+                                                ))}
+                                            </select>
+                                            {errors.customerId && <span className="error-msg">{errors.customerId}</span>}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className={`form-field ${errors.customerName ? 'has-error' : ''}`}>
+                                                <label>Customer Name <span className="required">*</span></label>
+                                                <input
+                                                    type="text"
+                                                    name="customerName"
+                                                    placeholder="Enter name"
+                                                    value={formData.customerName}
+                                                    onChange={handleChange}
+                                                    className="input-premium"
+                                                />
+                                                {errors.customerName && <span className="error-msg">{errors.customerName}</span>}
+                                            </div>
+                                            <div className={`form-field ${errors.customerEmail ? 'has-error' : ''}`}>
+                                                <label>Customer Email <span className="required">*</span></label>
+                                                <input
+                                                    type="email"
+                                                    name="customerEmail"
+                                                    placeholder="Enter email"
+                                                    value={formData.customerEmail}
+                                                    onChange={handleChange}
+                                                    className="input-premium"
+                                                />
+                                                {errors.customerEmail && <span className="error-msg">{errors.customerEmail}</span>}
+                                            </div>
+                                            <div className="form-field">
+                                                <label>Customer Phone</label>
+                                                <input
+                                                    type="tel"
+                                                    name="customerPhone"
+                                                    placeholder="Enter phone"
+                                                    value={formData.customerPhone}
+                                                    onChange={handleChange}
+                                                    className="input-premium"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
 
-                                    <div className={`form-field ${errors.subject ? 'has-error' : ''}`}>
+                                    <div className={`form-field ${errors.subject ? 'has-error' : ''} ${isNewCustomer ? 'full-width' : ''}`}>
                                         <label>Subject / Title <span className="required">*</span></label>
                                         <input
                                             type="text"

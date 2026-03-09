@@ -53,9 +53,28 @@ router.get('/:id', protect, async (req, res) => {
 // @route   POST /api/tickets
 // @access  Private
 router.post('/', protect, async (req, res) => {
-    let { customerId, subject, description, priority, category, assignedMember } = req.body;
+    let { customerId, customerName, customerEmail, customerPhone, subject, description, priority, category, assignedMember } = req.body;
 
     try {
+        // If customerId is not provided, try to find or create customer
+        if (!customerId) {
+            if (!customerName || !customerEmail) {
+                return res.status(400).json({ message: 'Customer details (Name and Email) are required if no customer is selected' });
+            }
+
+            let customer = await Customer.findOne({ email: customerEmail.toLowerCase() });
+
+            if (!customer) {
+                customer = new Customer({
+                    name: customerName,
+                    email: customerEmail.toLowerCase(),
+                    phone: customerPhone || 'N/A'
+                });
+                await customer.save();
+            }
+            customerId = customer._id;
+        }
+
         if (!customerId || !subject || !description || !priority) {
             return res.status(400).json({ message: 'Major missing fields' });
         }
@@ -68,7 +87,7 @@ router.post('/', protect, async (req, res) => {
             subject,
             description,
             priority,
-            category,
+            category: category || 'General',
             assignedMember: assignedMember || null,
             history: [{
                 action: 'Ticket Created',
