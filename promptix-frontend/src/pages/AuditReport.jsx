@@ -9,15 +9,25 @@ const AuditReport = () => {
 
     // 1. Data Normalization & Simulation (Preserved from original logic)
     const normalizedTickets = useMemo(() => {
-        return tickets.map(t => ({
-            ...t,
-            title: t.title || `Support req: ${t.customerName}`,
-            createdBy: t.createdBy || 'System Admin',
-            createdAt: t.createdAt || t.createdDate || '2026-02-23T10:00:00',
-            assignedBy: t.assignedBy || 'Manager Sarah',
-            assignedAgent: t.assignedAgent || 'Unassigned',
-            assignedAt: t.assignedAt || (t.createdDate ? `${t.createdDate}T10:30:00` : '2026-02-23T10:30:00')
-        }));
+        return tickets.map(t => {
+            const creator = t.history?.find(h => h.action === 'Ticket Created')?.user || 'System';
+
+            let assigner = 'N/A';
+            if (t.assignedAgent !== 'Unassigned') {
+                const updateEvent = [...(t.history || [])].reverse().find(h => h.action === 'Ticket Updated');
+                assigner = updateEvent ? updateEvent.user : creator;
+            }
+
+            return {
+                ...t,
+                title: t.subject || `Support req: ${t.customerName}`,
+                createdBy: creator,
+                createdAt: t.createdAt || t.createdDate || new Date().toISOString(),
+                assignedBy: assigner,
+                assignedAgent: t.assignedAgent || 'Unassigned',
+                assignedAt: t.createdAt || new Date().toISOString()
+            };
+        });
     }, [tickets]);
 
     // 2. Filter State
