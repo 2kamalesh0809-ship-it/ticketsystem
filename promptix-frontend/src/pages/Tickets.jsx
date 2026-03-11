@@ -185,8 +185,7 @@ const Tickets = () => {
                             </button>
                         ))}
                         <select
-                            className="search-input ml-4"
-                            style={{ width: 'auto', padding: '6px 12px', height: '32px' }}
+                            className="filter-chip ml-4 select-dropdown-fix"
                             value={sourceFilter}
                             onChange={(e) => { setSourceFilter(e.target.value); setCurrentPage(1); }}
                         >
@@ -195,8 +194,7 @@ const Tickets = () => {
                             <option value="Coach App">Coach App</option>
                         </select>
                         <select
-                            className="search-input ml-2"
-                            style={{ width: 'auto', padding: '6px 12px', height: '32px' }}
+                            className="filter-chip ml-2 select-dropdown-fix"
                             value={userTypeFilter}
                             onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
                         >
