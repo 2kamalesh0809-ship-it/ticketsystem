@@ -1,9 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 const Ticket = require('../models/Ticket');
 const Customer = require('../models/Customer');
 const { generateTicketId } = require('../utils/generateTicketId');
 const { createNotification } = require('../utils/notifications');
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './uploads/ticket-attachments';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
+const upload = multer({ storage });
 
 // Middleware to validate API Key
 const validateApiKey = (req, res, next) => {
@@ -14,19 +32,23 @@ const validateApiKey = (req, res, next) => {
     next();
 };
 
-// @desc    Create new ticket from external website
-// @route   POST /api/external/create-ticket
-// @access  Public (with API Key)
+// @desc    Create backward compatible ticket
 router.post('/create-ticket', validateApiKey, async (req, res) => {
-    const { name, email, phone, subject, message, source } = req.body;
+    // Just forward to the logic of client-ticket
+    req.url = '/client-ticket';
+    router.handle(req, res);
+});
 
-    // STEP 1 - Validation
+// @desc    Create new client ticket from external website
+// @route   POST /api/external/client-ticket
+router.post('/client-ticket', validateApiKey, async (req, res) => {
+    const { name, email, phone, subject, message } = req.body;
+
     if (!name) return res.status(400).json({ error: 'Name is required' });
     if (!email) return res.status(400).json({ error: 'Email is required' });
     if (!message) return res.status(400).json({ error: 'Message is required' });
 
     try {
-        // STEP 2 - Customer Logic
         let customer = await Customer.findOne({ email: email.toLowerCase() });
 
         if (!customer) {
@@ -38,18 +60,17 @@ router.post('/create-ticket', validateApiKey, async (req, res) => {
             await customer.save();
         }
 
-        // STEP 3 - Generate Ticket ID
         const ticketId = await generateTicketId();
 
-        // STEP 4 - Create Ticket
         const ticket = new Ticket({
             ticketId,
             customerId: customer._id,
+            userType: 'Client',
+            source: 'Website',
             subject: subject || 'Website Inquiry',
             description: message,
             priority: 'Medium',
             status: 'Open',
-            source: 'Website',
             history: [{
                 action: 'Ticket Created',
                 user: 'System (Website)',
@@ -59,16 +80,14 @@ router.post('/create-ticket', validateApiKey, async (req, res) => {
 
         await ticket.save();
 
-        // STEP 5 - Notification
         await createNotification({
             userId: 'staff',
-            title: 'New Website Ticket',
-            message: `A new inquiry from ${name} was submitted via mrcoach.in (Ticket: ${ticket.ticketId})`,
+            title: 'New Client Ticket',
+            message: `A new inquiry from ${name} was submitted via Website (Ticket: ${ticket.ticketId})`,
             type: 'New Ticket',
             relatedId: ticket.ticketId
         });
 
-        // STEP 6 - Success Response
         res.status(201).json({
             success: true,
             ticketId: ticket.ticketId,
@@ -77,6 +96,66 @@ router.post('/create-ticket', validateApiKey, async (req, res) => {
 
     } catch (error) {
         console.error('External Ticket Creation Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// @desc    Create new coach ticket from external app
+// @route   POST /api/external/coach-ticket
+router.post('/coach-ticket', validateApiKey, upload.array('attachments'), async (req, res) => {
+    const { coachId, coachName, subject, description, priority, gdriveLink, metadata } = req.body;
+
+    if (!coachId) return res.status(400).json({ error: 'Coach ID is required' });
+    if (!coachName) return res.status(400).json({ error: 'Coach Name is required' });
+    if (!description) return res.status(400).json({ error: 'Description is required' });
+
+    try {
+        const ticketId = await generateTicketId();
+
+        // Handle uploaded files
+        let uploadedFiles = [];
+        if (req.files && req.files.length > 0) {
+            uploadedFiles = req.files.map(file => `/uploads/ticket-attachments/${file.filename}`);
+        }
+
+        const ticket = new Ticket({
+            ticketId,
+            userType: 'Coach',
+            source: 'Coach App',
+            coachId,
+            coachName,
+            gdriveLink: gdriveLink || '',
+            metadata: metadata ? JSON.parse(metadata) : {},
+            attachments: uploadedFiles,
+            subject: subject || 'Coach App Issue',
+            description,
+            priority: priority || 'Medium',
+            status: 'Open',
+            history: [{
+                action: 'Ticket Created',
+                user: 'System (Coach App)',
+                details: 'Ticket generated from Coach App'
+            }]
+        });
+
+        await ticket.save();
+
+        await createNotification({
+            userId: 'staff',
+            title: 'New Coach Ticket',
+            message: `A new issue from Coach ${coachName} was submitted via App (Ticket: ${ticket.ticketId})`,
+            type: 'New Ticket',
+            relatedId: ticket.ticketId
+        });
+
+        res.status(201).json({
+            success: true,
+            ticketId: ticket.ticketId,
+            message: 'Coach ticket created successfully'
+        });
+
+    } catch (error) {
+        console.error('External Coach Ticket Creation Error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });

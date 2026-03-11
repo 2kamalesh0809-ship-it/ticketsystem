@@ -8,8 +8,23 @@ const ticketSchema = new mongoose.Schema({
     },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Customer',
-        required: true
+        ref: 'Customer'
+    },
+    userType: {
+        type: String,
+        default: 'Client'
+    },
+    coachId: {
+        type: String
+    },
+    coachName: {
+        type: String
+    },
+    gdriveLink: {
+        type: String
+    },
+    metadata: {
+        type: mongoose.Schema.Types.Mixed
     },
     subject: {
         type: String,
@@ -35,7 +50,6 @@ const ticketSchema = new mongoose.Schema({
     },
     source: {
         type: String,
-        enum: ['Website', 'Phone', 'Email', 'WhatsApp', 'Manual'],
         default: 'Manual'
     },
     assignedMember: {
