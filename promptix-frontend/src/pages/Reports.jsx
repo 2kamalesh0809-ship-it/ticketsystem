@@ -26,6 +26,7 @@ const Reports = () => {
         { id: 'monthly', label: 'Monthly Report', icon: Calendar },
         { id: 'agent', label: 'Member Performance', icon: BarChart3 },
         { id: 'status', label: 'Status Distribution', icon: PieIcon },
+        { id: 'source', label: 'Source Analytics', icon: PieIcon },
     ];
 
     useEffect(() => {
@@ -170,6 +171,48 @@ const Reports = () => {
                                             dataKey="value"
                                         >
                                             {(dashboardData?.statusDistribution || []).map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'source':
+                const webCount = tickets.filter(t => t.source?.toLowerCase().includes('website')).length;
+                const coachCount = tickets.filter(t => t.source?.toLowerCase().includes('coach')).length;
+                const totalCount = tickets.length;
+
+                const sourceData = [
+                    { name: 'Website', value: webCount },
+                    { name: 'Coach App', value: coachCount },
+                    { name: 'Manual/Other', value: totalCount - webCount - coachCount }
+                ].filter(d => d.value > 0);
+
+                return (
+                    <div className="report-content-fade">
+                        <div className="stats-grid-4 mb-6">
+                            <StatsCard title="Total Tickets" value={totalCount} icon={Ticket} trend={0} />
+                            <StatsCard title="Website Tickets" value={webCount} icon={Zap} trend={0} />
+                            <StatsCard title="Coach App Tickets" value={coachCount} icon={Trophy} trend={0} />
+                        </div>
+                        <div className="card p-6">
+                            <h3 className="section-title mb-6">Volume by Source</h3>
+                            <div className="chart-h">
+                                <ResponsiveContainer width="100%" height={260}>
+                                    <PieChart>
+                                        <Pie
+                                            data={sourceData}
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                        >
+                                            {sourceData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                             ))}
                                         </Pie>

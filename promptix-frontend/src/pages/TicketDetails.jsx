@@ -24,7 +24,10 @@ import {
     UserCircle,
     Activity,
     Settings,
-    PlusCircle
+    PlusCircle,
+    Link2,
+    Paperclip,
+    FileImage
 } from 'lucide-react';
 import './TicketDetails.css';
 
@@ -132,23 +135,28 @@ const TicketDetails = () => {
                         <h1>Ticket {ticket.id}</h1>
                         <StatusBadge status={ticket.status} />
                         <PriorityBadge priority={ticket.priority} />
+                        {ticket.source && (
+                            <span style={{ marginLeft: '12px', fontSize: '13px', padding: '4px 10px', background: 'var(--bg-main)', borderRadius: '20px', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '600' }}>
+                                Source: {ticket.source}
+                            </span>
+                        )}
                     </div>
                     <p className="created-text">
                         <Calendar size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                         Opened on {new Date(ticket.createdAt || ticket.createdDate).toLocaleDateString()}
                         <span style={{ margin: '0 8px', color: 'var(--border-hover)' }}>|</span>
-                        Customer: <strong>{ticket.customerName}</strong>
+                        Requester: <strong>{ticket.customerName}</strong>
                     </p>
                 </div>
             </div>
 
             <div className="details-grid-premium">
                 <div className="details-main-column">
-                    {/* Customer Information Card */}
+                    {/* Requester Information Card */}
                     <div className="premium-card">
                         <div className="card-header-iconized">
                             <div className="header-icon"><User size={20} /></div>
-                            <h2>Customer Overview</h2>
+                            <h2>Requester Overview ({ticket.userType || 'Client'})</h2>
                         </div>
                         <div className="card-content-p">
                             <div className="info-horizontal-grid">
@@ -159,28 +167,67 @@ const TicketDetails = () => {
                                         <span>{ticket.customerName}</span>
                                     </div>
                                 </div>
-                                <div className="info-box">
-                                    <span className="box-label">Email Address</span>
-                                    <div className="box-value-with-icon">
-                                        <Mail size={16} className="box-value-icon" />
-                                        <span>{ticket.email || 'not-provided@example.com'}</span>
+                                {ticket.userType === 'Coach' ? (
+                                    <div className="info-box">
+                                        <span className="box-label">Coach ID</span>
+                                        <div className="box-value-with-icon">
+                                            <ShieldAlert size={16} className="box-value-icon" />
+                                            <span>{ticket.coachId}</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="info-box">
-                                    <span className="box-label">Phone Number</span>
-                                    <div className="box-value-with-icon">
-                                        <Phone size={16} className="box-value-icon" />
-                                        <span>{ticket.phone}</span>
-                                    </div>
-                                </div>
+                                ) : (
+                                    <>
+                                        <div className="info-box">
+                                            <span className="box-label">Email Address</span>
+                                            <div className="box-value-with-icon">
+                                                <Mail size={16} className="box-value-icon" />
+                                                <span>{ticket.email || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="info-box">
+                                            <span className="box-label">Phone Number</span>
+                                            <div className="box-value-with-icon">
+                                                <Phone size={16} className="box-value-icon" />
+                                                <span>{ticket.phone || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             <div className="description-section">
-                                <span className="box-label">Initial Report / Description</span>
+                                <span className="box-label">Subject: {ticket.subject}</span>
                                 <div className="description-paper">
                                     {ticket.description}
                                 </div>
                             </div>
+
+                            {(ticket.gdriveLink || (ticket.attachments && ticket.attachments.length > 0)) && (
+                                <div className="attachments-section" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--bg-main)' }}>
+                                    <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Paperclip size={16} /> Attachments & Links
+                                    </h3>
+
+                                    {ticket.gdriveLink && (
+                                        <div style={{ marginBottom: '12px' }}>
+                                            <a href={ticket.gdriveLink} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f0fdf4', color: '#166534', borderRadius: '6px', textDecoration: 'none', fontWeight: '500', fontSize: '14px' }}>
+                                                <Link2 size={16} /> View Google Drive Files
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    {ticket.attachments && ticket.attachments.length > 0 && (
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                                            {ticket.attachments.map((file, idx) => (
+                                                <a key={idx} href={`https://promptix-backend-uxgf.onrender.com${file}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '6px', textDecoration: 'none', color: 'var(--text-main)', fontSize: '13px' }}>
+                                                    <FileImage size={16} color="var(--primary)" />
+                                                    Attachment {idx + 1}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -18,6 +18,8 @@ const Tickets = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [sourceFilter, setSourceFilter] = useState('ALL');
+    const [userTypeFilter, setUserTypeFilter] = useState('ALL');
     const [selectedTickets, setSelectedTickets] = useState([]);
     const [bulkAgent, setBulkAgent] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -51,13 +53,27 @@ const Tickets = () => {
             }
         }
 
+        if (sourceFilter !== 'ALL') {
+            if (sourceFilter === 'Website') {
+                filtered = filtered.filter(t => t.source?.toLowerCase().includes('website'));
+            } else if (sourceFilter === 'Coach App') {
+                filtered = filtered.filter(t => t.source?.toLowerCase().includes('coach'));
+            } else {
+                filtered = filtered.filter(t => t.source === sourceFilter);
+            }
+        }
+
+        if (userTypeFilter !== 'ALL') {
+            filtered = filtered.filter(t => t.userType?.toLowerCase() === userTypeFilter.toLowerCase());
+        }
+
         // Default Sort: Newest First
         return filtered.sort((a, b) => {
             const dateA = new Date(a.createdAt || a.createdDate);
             const dateB = new Date(b.createdAt || b.createdDate);
             return dateB - dateA;
         });
-    }, [tickets, searchTerm, statusFilter]);
+    }, [tickets, searchTerm, statusFilter, sourceFilter, userTypeFilter]);
 
     // Handle filter preset clicks
     const filters = [
@@ -103,12 +119,30 @@ const Tickets = () => {
 
     const columns = [
         { header: 'Ticket ID', field: 'id' },
-        { header: 'Name', field: 'customerName' },
-        { header: 'Phone', field: 'phone' },
-        { header: 'Priority', render: (row) => <PriorityBadge priority={row.priority} /> },
-        { header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-        { header: 'Source', field: 'source' },
-        { header: 'Created', field: 'createdDate' }
+        {
+            header: 'Source', render: (row) => {
+                const isCoach = row.source?.toLowerCase().includes('coach');
+                const sourceColor = isCoach ? '#9333ea' : '#2563eb';
+                const sourceBg = isCoach ? '#faf5ff' : '#eff6ff';
+                return (
+                    <span style={{
+                        backgroundColor: sourceBg,
+                        color: sourceColor,
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        border: `1px solid ${isCoach ? '#e9d5ff' : '#bfdbfe'}`
+                    }}>
+                        {row.source || 'Manual'}
+                    </span>
+                );
+            }
+        },
+        { header: 'User Type', render: (row) => <span style={{ textTransform: 'capitalize' }}>{row.userType || 'Client'}</span> },
+        { header: 'Name', render: (row) => <span>{row.customerName || row.coachName}</span> },
+        { header: 'Subject', field: 'subject' },
+        { header: 'Status', render: (row) => <StatusBadge status={row.status} /> }
     ];
 
     return (
@@ -150,6 +184,26 @@ const Tickets = () => {
                                 {f.label}
                             </button>
                         ))}
+                        <select
+                            className="search-input ml-4"
+                            style={{ width: 'auto', padding: '6px 12px', height: '32px' }}
+                            value={sourceFilter}
+                            onChange={(e) => { setSourceFilter(e.target.value); setCurrentPage(1); }}
+                        >
+                            <option value="ALL">All Sources</option>
+                            <option value="Website">Website</option>
+                            <option value="Coach App">Coach App</option>
+                        </select>
+                        <select
+                            className="search-input ml-2"
+                            style={{ width: 'auto', padding: '6px 12px', height: '32px' }}
+                            value={userTypeFilter}
+                            onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
+                        >
+                            <option value="ALL">All Users</option>
+                            <option value="Client">Client</option>
+                            <option value="Coach">Coach</option>
+                        </select>
                     </div>
                 </div>
 
