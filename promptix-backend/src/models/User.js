@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['Admin', 'Manager', 'Support Member'],
         default: 'Support Member'
+    },
+    phone: {
+        type: String,
+        trim: true
+    },
+    employeeId: {
+        type: String,
+        trim: true
     }
 
 }, {
