@@ -80,6 +80,8 @@ const Navbar = ({ pageTitle = "Dashboard" }) => {
         }
     };
 
+    const API_BASE_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+
     return (
         <header className="top-navbar">
             <div className="navbar-left">
@@ -146,7 +148,13 @@ const Navbar = ({ pageTitle = "Dashboard" }) => {
 
                 <div className="profile-dropdown-container">
                     <button className="profile-trigger" onClick={toggleProfile}>
-                        <div className="avatar">{user?.name ? user.name.charAt(0) : 'A'}</div>
+                        <div className="avatar" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {user?.avatar ? (
+                                <img src={`${API_BASE_URL}${user.avatar}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                (user?.name ? user.name.charAt(0) : 'A')
+                            )}
+                        </div>
                         <div className="profile-text desktop-only">
                             <span className="profile-name">{user?.name || 'User'}</span>
                         </div>

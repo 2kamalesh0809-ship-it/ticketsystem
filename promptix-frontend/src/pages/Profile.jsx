@@ -26,6 +26,8 @@ const Profile = () => {
         confirmPassword: ''
     });
 
+    const API_BASE_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+
     useEffect(() => {
         if (user) {
             setProfileData({
@@ -46,6 +48,31 @@ const Profile = () => {
     const handlePasswordInput = (e) => {
         const { name, value } = e.target;
         setPasswordData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAvatarChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 800 * 1024) {
+            setMessage({ type: 'error', text: 'Image size must be less than 800KB' });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        setLoading(true);
+        try {
+            const result = await userService.updateAvatar(formData);
+            updateUser(result);
+            setMessage({ type: 'success', text: 'Avatar updated successfully!' });
+            clearMessage();
+        } catch (error) {
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to upload avatar' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const clearMessage = () => setTimeout(() => setMessage({ type: '', text: '' }), 5000);
@@ -120,12 +147,31 @@ const Profile = () => {
                 </div>
 
                 <div className="avatar-section">
-                    <div className="avatar-preview">
-                        <User size={40} />
+                    <div className="avatar-preview" style={{ overflow: 'hidden' }}>
+                        {user?.avatar ? (
+                            <img
+                                src={`${API_BASE_URL}${user.avatar}`}
+                                alt="Avatar"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        ) : (
+                            <User size={40} />
+                        )}
                     </div>
                     <div className="avatar-actions">
-                        <button className="btn-upload flex-center gap-2">
-                            <Camera size={14} /> Change Avatar
+                        <input
+                            type="file"
+                            id="avatar-input"
+                            hidden
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                        />
+                        <button
+                            className="btn-upload flex-center gap-2"
+                            onClick={() => document.getElementById('avatar-input').click()}
+                            disabled={loading}
+                        >
+                            <Camera size={14} /> {loading ? 'Uploading...' : 'Change Avatar'}
                         </button>
                         <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>
                             JPG, GIF or PNG. Max size of 800K
