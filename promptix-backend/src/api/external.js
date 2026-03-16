@@ -32,29 +32,22 @@ const validateApiKey = (req, res, next) => {
     next();
 };
 
-// @desc    Create backward compatible ticket
-router.post('/create-ticket', validateApiKey, async (req, res) => {
-    // Just forward to the logic of client-ticket
-    req.url = '/client-ticket';
-    router.handle(req, res);
-});
-
-// @desc    Create new client ticket from external website
-// @route   POST /api/external/client-ticket
-router.post('/client-ticket', validateApiKey, async (req, res) => {
-    const { name, email, phone, subject, message } = req.body;
+// Helper to handle client ticket creation logic
+async function processClientTicket(data, res) {
+    const { name, email, phone, subject, message } = data;
 
     if (!name) return res.status(400).json({ error: 'Name is required' });
     if (!email) return res.status(400).json({ error: 'Email is required' });
     if (!message) return res.status(400).json({ error: 'Message is required' });
 
     try {
-        let customer = await Customer.findOne({ email: email.toLowerCase() });
+        const normalizedEmail = email.toLowerCase();
+        let customer = await Customer.findOne({ email: normalizedEmail });
 
         if (!customer) {
             customer = new Customer({
                 name,
-                email: email.toLowerCase(),
+                email: normalizedEmail,
                 phone: phone || 'N/A'
             });
             await customer.save();
@@ -88,7 +81,7 @@ router.post('/client-ticket', validateApiKey, async (req, res) => {
             relatedId: ticket.ticketId
         });
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             ticketId: ticket.ticketId,
             message: 'Support ticket created successfully'
@@ -96,8 +89,19 @@ router.post('/client-ticket', validateApiKey, async (req, res) => {
 
     } catch (error) {
         console.error('External Ticket Creation Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        return res.status(500).json({ error: 'Server error' });
     }
+}
+
+// @desc    Create backward compatible ticket
+router.post('/create-ticket', validateApiKey, async (req, res) => {
+    return processClientTicket(req.body, res);
+});
+
+// @desc    Create new client ticket from external website
+// @route   POST /api/external/client-ticket
+router.post('/client-ticket', validateApiKey, async (req, res) => {
+    return processClientTicket(req.body, res);
 });
 
 // @desc    Create new coach ticket from external app
