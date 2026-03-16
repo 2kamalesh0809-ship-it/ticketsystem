@@ -90,6 +90,7 @@ router.get('/performance', protect, async (req, res) => {
             {
                 $project: {
                     name: { $ifNull: ["$agent.name", "Unassigned"] },
+                    avatar: "$agent.avatar",
                     assigned: 1,
                     closed: 1,
                     open: 1,
