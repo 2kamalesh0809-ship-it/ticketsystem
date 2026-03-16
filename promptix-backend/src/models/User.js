@@ -29,6 +29,9 @@ const userSchema = new mongoose.Schema({
     employeeId: {
         type: String,
         trim: true
+    },
+    avatar: {
+        type: String
     }
 
 }, {

@@ -3,6 +3,9 @@ const router = express.Router();
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 
 // @desc    Get all users (Staff members)
 // @route   GET /api/users
@@ -73,6 +76,73 @@ router.put('/change-password', protect, async (req, res) => {
         await user.save();
 
         res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Configure Multer for avatar uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './uploads/avatars';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `avatar-${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 800 * 1024 }, // 800KB as per UI hint
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|gif/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only images (jpeg, jpg, png, gif) are allowed'));
+        }
+    }
+});
+
+// @desc    Update user avatar
+// @route   PUT /api/users/avatar
+// @access  Private
+router.put('/avatar', protect, upload.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Please upload an image' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (user) {
+            // Delete old avatar if it exists
+            if (user.avatar) {
+                const oldAvatarPath = path.join(__dirname, '../../', user.avatar);
+                if (fs.existsSync(oldAvatarPath)) {
+                    fs.unlinkSync(oldAvatarPath);
+                }
+            }
+
+            user.avatar = `/uploads/avatars/${req.file.filename}`;
+            const updatedUser = await user.save();
+
+            res.json({
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                avatar: updatedUser.avatar
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
