@@ -50,8 +50,27 @@ const Reports = () => {
         }
     }, [user]);
 
+    const API_BASE_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+
     const agentTableColumns = [
-        { header: 'Member Name', field: 'name' },
+        {
+            header: 'Member',
+            render: (row) => (
+                <div className="flex-center gap-3">
+                    <div className="avatar-mini" style={{
+                        width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#eee',
+                        overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                    }}>
+                        {row.avatar ? (
+                            <img src={`${API_BASE_URL}${row.avatar}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            <User size={16} color="#94a3b8" />
+                        )}
+                    </div>
+                    <span style={{ fontWeight: '500' }}>{row.name}</span>
+                </div>
+            )
+        },
         { header: 'Assigned', field: 'assigned' },
         { header: 'Closed', field: 'closed' },
         { header: 'Open', field: 'open' },

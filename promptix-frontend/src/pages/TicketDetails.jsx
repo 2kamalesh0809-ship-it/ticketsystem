@@ -39,6 +39,7 @@ const TicketDetails = () => {
 
     const ticket = tickets.find(t => t.id === id);
     const isManager = user?.role === 'Manager';
+    const API_BASE_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
 
     const [status, setStatus] = useState('');
     const [priority, setPriority] = useState('');
@@ -291,15 +292,32 @@ const TicketDetails = () => {
 
                         <div className="notes-stream">
                             {ticket.notes && ticket.notes.length > 0 ? (
-                                ticket.notes.map(note => (
-                                    <div key={note.id} className="note-bubble-premium manager-note">
-                                        <div className="note-meta">
-                                            <span className="note-author">{note.author}</span>
-                                            <span className="note-time">{new Date(note.date).toLocaleString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}</span>
+                                ticket.notes.map(note => {
+                                    const staff = staffMembers.find(s => s.name === note.author);
+                                    return (
+                                        <div key={note.id} className="note-bubble-premium manager-note">
+                                            <div style={{ display: 'flex', gap: '12px' }}>
+                                                <div className="avatar-mini" style={{
+                                                    width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#eee',
+                                                    overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                                }}>
+                                                    {staff?.avatar ? (
+                                                        <img src={`${API_BASE_URL}${staff.avatar}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    ) : (
+                                                        <User size={16} color="#94a3b8" />
+                                                    )}
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="note-meta">
+                                                        <span className="note-author">{note.author}</span>
+                                                        <span className="note-time">{new Date(note.date).toLocaleString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}</span>
+                                                    </div>
+                                                    <p className="note-text">{note.text}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <p className="note-text">{note.text}</p>
-                                    </div>
-                                ))
+                                    );
+                                })
                             ) : (
                                 <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-light)' }}>
                                     <MessageSquare size={32} style={{ marginBottom: '12px', opacity: 0.5 }} />
@@ -368,7 +386,22 @@ const TicketDetails = () => {
                             <div className="sidebar-stat-row">
                                 <UserCircle size={16} className="stat-icon" />
                                 <span>Staff Member</span>
-                                <strong>{ticket.assignedAgent === 'Unassigned' ? 'N/A' : ticket.assignedAgent}</strong>
+                                <strong style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {ticket.assignedAgent === 'Unassigned' ? 'N/A' : (
+                                        <>
+                                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #ddd' }}>
+                                                {staffMembers.find(s => s.name === ticket.assignedAgent || s._id === ticket.assignedAgentId)?.avatar ? (
+                                                    <img
+                                                        src={`${API_BASE_URL}${staffMembers.find(s => s.name === ticket.assignedAgent || s._id === ticket.assignedAgentId).avatar}`}
+                                                        alt=""
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    />
+                                                ) : <User size={10} />}
+                                            </div>
+                                            {ticket.assignedAgent}
+                                        </>
+                                    )}
+                                </strong>
                             </div>
                             <div className="sidebar-stat-row">
                                 <Activity size={16} className="stat-icon" />

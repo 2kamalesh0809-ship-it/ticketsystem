@@ -30,6 +30,7 @@ const navItems = [
 const Sidebar = ({ isOpen, isCollapsed, onClose, onToggleCollapse }) => {
     const { user } = useAuth();
     const location = useLocation();
+    const API_BASE_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
 
     return (
         <>
@@ -91,7 +92,13 @@ const Sidebar = ({ isOpen, isCollapsed, onClose, onToggleCollapse }) => {
                 {/* Bottom Profile Section */}
                 <div className="sidebar-footer">
                     <Link to="/profile" className="user-profile-sm" onClick={() => onClose && onClose()}>
-                        <div className="avatar-placeholder">{user?.name ? user.name.charAt(0) : 'A'}</div>
+                        <div className="avatar-placeholder" style={{ overflow: 'hidden' }}>
+                            {user?.avatar ? (
+                                <img src={`${API_BASE_URL}${user.avatar}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                (user?.name ? user.name.charAt(0) : 'A')
+                            )}
+                        </div>
                         {!isCollapsed && (
                             <div className="user-details">
                                 <span className="user-name">{user?.name}</span>
